@@ -38,7 +38,6 @@ Server URL is read from the NICHART_API_URL environment variable
 from __future__ import annotations
 
 import contextlib
-import getpass
 import os
 import shutil
 import socket
@@ -476,7 +475,7 @@ def _project_root(project: str) -> Path | None:
     """Return absolute host path to a project directory, if NICHART_DATA_ROOT is set."""
     root = os.environ.get("NICHART_DATA_ROOT")
     if root:
-        return Path(root) / getpass.getuser() / project
+        return Path(root) / "LOCAL_USER" / project
     return None
 
 
