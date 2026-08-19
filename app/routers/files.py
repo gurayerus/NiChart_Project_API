@@ -94,12 +94,13 @@ async def download_file(
 
 
 @router.post(
-    "/files/download-zip",
-    summary="Zip and download a multi-file/directory selection",
+    "/files/archive",
+    summary="Bundle a multi-file/directory selection into one zip",
     description=(
         "Bundles an arbitrary set of files and/or directories into a single zip archive, "
         "preserving each entry's path relative to the project root. Useful for downloading "
-        "a multi-selection from the file browser as one archive instead of one request per item."
+        "a multi-selection from the file browser as one archive instead of one request per item. "
+        "Named to avoid 'download' in the URL, which some ad-blocker/privacy extensions filter."
     ),
     response_model=None,
     responses={
@@ -107,7 +108,7 @@ async def download_file(
         **_AUTH_ERRORS,
     },
 )
-async def download_zip(
+async def create_archive(
     project_id: str,
     body: DownloadZipRequest,
     user: CurrentUser = Depends(require_auth),

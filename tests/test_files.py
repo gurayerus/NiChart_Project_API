@@ -104,7 +104,7 @@ def test_download_zip_mixed_files_and_dirs(data_client, tmp_path):
     (d / "b.txt").write_text("bbb")
 
     resp = data_client.post(
-        f"/projects/{pid}/files/download-zip", json={"paths": ["top.txt", "mydir"]}
+        f"/projects/{pid}/files/archive", json={"paths": ["top.txt", "mydir"]}
     )
     assert resp.status_code == 200
     assert resp.headers["content-type"] == "application/zip"
@@ -123,7 +123,7 @@ def test_download_zip_deduplicates_overlapping_selection(data_client, tmp_path):
     (d / "a.txt").write_text("aaa")
 
     resp = data_client.post(
-        f"/projects/{pid}/files/download-zip", json={"paths": ["mydir", "mydir/a.txt"]}
+        f"/projects/{pid}/files/archive", json={"paths": ["mydir", "mydir/a.txt"]}
     )
     assert resp.status_code == 200
     buf = io.BytesIO(resp.content)
@@ -135,14 +135,14 @@ def test_download_zip_deduplicates_overlapping_selection(data_client, tmp_path):
 def test_download_zip_path_traversal_rejected(data_client):
     pid = _create_project(data_client)
     resp = data_client.post(
-        f"/projects/{pid}/files/download-zip", json={"paths": ["../../etc/passwd"]}
+        f"/projects/{pid}/files/archive", json={"paths": ["../../etc/passwd"]}
     )
     assert resp.status_code == 400
 
 
 def test_download_zip_requires_at_least_one_path(data_client):
     pid = _create_project(data_client)
-    resp = data_client.post(f"/projects/{pid}/files/download-zip", json={"paths": []})
+    resp = data_client.post(f"/projects/{pid}/files/archive", json={"paths": []})
     assert resp.status_code == 422
 
 

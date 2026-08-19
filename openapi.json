@@ -980,14 +980,14 @@
         }
       }
     },
-    "/projects/{project_id}/files/download-zip": {
+    "/projects/{project_id}/files/archive": {
       "post": {
         "tags": [
           "Files"
         ],
-        "summary": "Zip and download a multi-file/directory selection",
-        "description": "Bundles an arbitrary set of files and/or directories into a single zip archive, preserving each entry's path relative to the project root. Useful for downloading a multi-selection from the file browser as one archive instead of one request per item.",
-        "operationId": "download_zip_projects__project_id__files_download_zip_post",
+        "summary": "Bundle a multi-file/directory selection into one zip",
+        "description": "Bundles an arbitrary set of files and/or directories into a single zip archive, preserving each entry's path relative to the project root. Useful for downloading a multi-selection from the file browser as one archive instead of one request per item. Named to avoid 'download' in the URL, which some ad-blocker/privacy extensions filter.",
+        "operationId": "create_archive_projects__project_id__files_archive_post",
         "parameters": [
           {
             "name": "project_id",
