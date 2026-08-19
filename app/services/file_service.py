@@ -11,6 +11,7 @@ import shutil
 import tempfile
 import uuid
 import zipfile
+from collections.abc import Iterable, Iterator
 from datetime import datetime
 from pathlib import Path
 
@@ -122,40 +123,91 @@ def resolve_file_path(project_path: Path, user_path: str) -> Path:
 
 # ── Directory zip streaming ───────────────────────────────────────────────────
 
-def zip_directory_bytes(directory: Path) -> bytes:
-    buf = io.BytesIO()
-    with zipfile.ZipFile(buf, "w", compression=zipfile.ZIP_DEFLATED) as zf:
-        for item in sorted(directory.rglob("*")):
-            if item.is_file():
-                zf.write(item, item.relative_to(directory))
-    return buf.getvalue()
+class _StreamWriter:
+    """File-like adapter that lets zipfile.ZipFile write into a small drainable buffer
+    instead of an ever-growing in-memory archive — this is what lets us stream a zip
+    as it's built rather than holding the whole (potentially huge) archive in RAM and
+    only starting to respond once every entry has been compressed.
+    """
+
+    def __init__(self) -> None:
+        self._buffer = bytearray()
+        self._pos = 0
+
+    def write(self, data: bytes) -> int:
+        self._buffer.extend(data)
+        self._pos += len(data)
+        return len(data)
+
+    def tell(self) -> int:
+        return self._pos
+
+    def flush(self) -> None:  # zipfile calls this defensively; nothing to do
+        pass
+
+    def drain(self) -> bytes:
+        data = bytes(self._buffer)
+        self._buffer.clear()
+        return data
 
 
-def zip_paths_bytes(project_path: Path, paths: list[str]) -> bytes:
+def _stream_zip_entries(entries: Iterable[tuple[Path, str]]) -> Iterator[bytes]:
+    """Stream a zip archive of (absolute_path, arcname) pairs, yielding bytes as each
+    entry is compressed instead of buffering the whole archive before returning.
+    """
+    writer = _StreamWriter()
+    with zipfile.ZipFile(writer, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+        for path, arcname in entries:
+            zf.write(path, arcname)
+            chunk = writer.drain()
+            if chunk:
+                yield chunk
+    chunk = writer.drain()
+    if chunk:
+        yield chunk
+
+
+def zip_directory_stream(directory: Path) -> Iterator[bytes]:
+    # Resolve the file list eagerly (a plain function, not a generator) so any error
+    # here surfaces immediately rather than after the StreamingResponse has already
+    # started sending the 200 + headers to the client.
+    entries = [
+        (item, str(item.relative_to(directory)))
+        for item in sorted(directory.rglob("*"))
+        if item.is_file()
+    ]
+    return _stream_zip_entries(entries)
+
+
+def _resolve_zip_path_entries(project_path: Path, paths: list[str]) -> list[tuple[Path, str]]:
+    seen: set[str] = set()
+    entries: list[tuple[Path, str]] = []
+    for user_path in paths:
+        target = resolve_file_path(project_path, user_path)
+        items = (
+            [item for item in sorted(target.rglob("*")) if item.is_file()]
+            if target.is_dir()
+            else [target]
+        )
+        for item in items:
+            arcname = str(item.relative_to(project_path))
+            if arcname in seen:
+                continue
+            seen.add(arcname)
+            entries.append((item, arcname))
+    return entries
+
+
+def zip_paths_stream(project_path: Path, paths: list[str]) -> Iterator[bytes]:
     """Zip an arbitrary set of files/directories, keeping each entry's path relative to
     the project root — so a multi-selection spanning several folders keeps its structure.
+
+    Path resolution/validation happens eagerly (this is a plain function, not a
+    generator), so an invalid path (e.g. traversal) raises immediately instead of
+    failing mid-stream after the response has already started.
     """
-    buf = io.BytesIO()
-    seen: set[str] = set()
-    with zipfile.ZipFile(buf, "w", compression=zipfile.ZIP_DEFLATED) as zf:
-        for user_path in paths:
-            target = resolve_file_path(project_path, user_path)
-            if target.is_dir():
-                for item in sorted(target.rglob("*")):
-                    if not item.is_file():
-                        continue
-                    arcname = str(item.relative_to(project_path))
-                    if arcname in seen:
-                        continue
-                    seen.add(arcname)
-                    zf.write(item, arcname)
-            else:
-                arcname = str(target.relative_to(project_path))
-                if arcname in seen:
-                    continue
-                seen.add(arcname)
-                zf.write(target, arcname)
-    return buf.getvalue()
+    entries = _resolve_zip_path_entries(project_path, paths)
+    return _stream_zip_entries(entries)
 
 
 # ── Participants CSV ──────────────────────────────────────────────────────────

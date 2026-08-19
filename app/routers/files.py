@@ -83,9 +83,8 @@ async def download_file(
     if zip or target.is_dir():
         if not target.is_dir():
             raise HTTPException(400, "zip=true requires a directory path")
-        data = file_service.zip_directory_bytes(target)
         return StreamingResponse(
-            iter([data]),
+            file_service.zip_directory_stream(target),
             media_type="application/zip",
             headers={"Content-Disposition": f'attachment; filename="{target.name}.zip"'},
         )
@@ -115,9 +114,8 @@ async def create_archive(
     settings: Settings = Depends(get_settings),
 ) -> StreamingResponse:
     pdir = file_service.resolve_project(settings, user, project_id)
-    data = file_service.zip_paths_bytes(pdir, body.paths)
     return StreamingResponse(
-        iter([data]),
+        file_service.zip_paths_stream(pdir, body.paths),
         media_type="application/zip",
         headers={"Content-Disposition": f'attachment; filename="{project_id}.zip"'},
     )
