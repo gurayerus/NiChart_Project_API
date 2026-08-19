@@ -12,6 +12,7 @@ from app.config import Settings, get_settings
 from app.models.errors import ErrorDetail
 from app.models.files import (
     DirectoryTree,
+    DownloadZipRequest,
     NiftiCommitRequest,
     NiftiCommitResult,
     NiftiStagingResult,
@@ -90,6 +91,35 @@ async def download_file(
         )
 
     return FileResponse(path=target, filename=target.name)
+
+
+@router.post(
+    "/files/download-zip",
+    summary="Zip and download a multi-file/directory selection",
+    description=(
+        "Bundles an arbitrary set of files and/or directories into a single zip archive, "
+        "preserving each entry's path relative to the project root. Useful for downloading "
+        "a multi-selection from the file browser as one archive instead of one request per item."
+    ),
+    response_model=None,
+    responses={
+        200: {"description": "Zip stream."},
+        **_AUTH_ERRORS,
+    },
+)
+async def download_zip(
+    project_id: str,
+    body: DownloadZipRequest,
+    user: CurrentUser = Depends(require_auth),
+    settings: Settings = Depends(get_settings),
+) -> StreamingResponse:
+    pdir = file_service.resolve_project(settings, user, project_id)
+    data = file_service.zip_paths_bytes(pdir, body.paths)
+    return StreamingResponse(
+        iter([data]),
+        media_type="application/zip",
+        headers={"Content-Disposition": f'attachment; filename="{project_id}.zip"'},
+    )
 
 
 # ── Delete ────────────────────────────────────────────────────────────────────

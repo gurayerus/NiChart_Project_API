@@ -980,6 +980,97 @@
         }
       }
     },
+    "/projects/{project_id}/files/download-zip": {
+      "post": {
+        "tags": [
+          "Files"
+        ],
+        "summary": "Zip and download a multi-file/directory selection",
+        "description": "Bundles an arbitrary set of files and/or directories into a single zip archive, preserving each entry's path relative to the project root. Useful for downloading a multi-selection from the file browser as one archive instead of one request per item.",
+        "operationId": "download_zip_projects__project_id__files_download_zip_post",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Project Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DownloadZipRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Zip stream.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Access denied to this project.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project or file not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or unsafe path.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/projects/{project_id}/files/upload/nifti": {
       "post": {
         "tags": [
@@ -4053,6 +4144,25 @@
         ],
         "title": "DocTopicSummary",
         "description": "Abbreviated documentation topic for the index listing."
+      },
+      "DownloadZipRequest": {
+        "properties": {
+          "paths": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Paths",
+            "description": "Paths relative to the project root — a mix of files and directories is allowed. Each entry keeps its project-relative path inside the resulting archive, so the original directory structure is preserved."
+          }
+        },
+        "type": "object",
+        "required": [
+          "paths"
+        ],
+        "title": "DownloadZipRequest",
+        "description": "Request body for bundling multiple files/directories into a single zip."
       },
       "ErrorDetail": {
         "properties": {

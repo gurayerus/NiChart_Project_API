@@ -131,6 +131,33 @@ def zip_directory_bytes(directory: Path) -> bytes:
     return buf.getvalue()
 
 
+def zip_paths_bytes(project_path: Path, paths: list[str]) -> bytes:
+    """Zip an arbitrary set of files/directories, keeping each entry's path relative to
+    the project root — so a multi-selection spanning several folders keeps its structure.
+    """
+    buf = io.BytesIO()
+    seen: set[str] = set()
+    with zipfile.ZipFile(buf, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+        for user_path in paths:
+            target = resolve_file_path(project_path, user_path)
+            if target.is_dir():
+                for item in sorted(target.rglob("*")):
+                    if not item.is_file():
+                        continue
+                    arcname = str(item.relative_to(project_path))
+                    if arcname in seen:
+                        continue
+                    seen.add(arcname)
+                    zf.write(item, arcname)
+            else:
+                arcname = str(target.relative_to(project_path))
+                if arcname in seen:
+                    continue
+                seen.add(arcname)
+                zf.write(target, arcname)
+    return buf.getvalue()
+
+
 # ── Participants CSV ──────────────────────────────────────────────────────────
 
 _PARTICIPANTS_PATH = Path("participants") / "participants.csv"

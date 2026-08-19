@@ -23,6 +23,19 @@ class DirectoryTree(BaseModel):
     entries: list[FileEntry] = Field(default_factory=list)
 
 
+class DownloadZipRequest(BaseModel):
+    """Request body for bundling multiple files/directories into a single zip."""
+
+    paths: list[str] = Field(
+        min_length=1,
+        description=(
+            "Paths relative to the project root — a mix of files and directories is allowed. "
+            "Each entry keeps its project-relative path inside the resulting archive, so the "
+            "original directory structure is preserved."
+        ),
+    )
+
+
 # ── NIfTI upload / staging ───────────────────────────────────────────────────
 
 class NiftiUploadProposal(BaseModel):
