@@ -58,6 +58,13 @@ class NiftiStagingResult(BaseModel):
     proposals: list[NiftiUploadProposal] = Field(
         description="Server's best-effort mapping of filenames to MRID and modality."
     )
+    skipped_duplicates: list[str] = Field(
+        default=[],
+        description=(
+            "Original relative paths that were skipped because they flattened to the same "
+            "filename as an earlier entry in this upload (first occurrence wins)."
+        ),
+    )
 
 
 class NiftiMapping(BaseModel):
@@ -97,6 +104,13 @@ class NiftiCommitResult(BaseModel):
     """Response after a successful NIfTI commit."""
 
     committed: list[CommittedFile]
+    skipped: list[CommittedFile] = Field(
+        default=[],
+        description=(
+            "Entries whose target file already existed and were left untouched instead of "
+            "being overwritten."
+        ),
+    )
 
 
 # ── Participants CSV ──────────────────────────────────────────────────────────

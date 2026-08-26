@@ -277,6 +277,65 @@ def test_nifti_stage_and_commit(data_client, tmp_path):
     assert (tmp_path / "LOCAL_USER" / pid / "t1" / "sub001.nii.gz").exists()
 
 
+def test_nifti_zip_flatten_collision_first_wins(data_client, tmp_path):
+    pid = _create_project(data_client)
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w") as zf:
+        zf.writestr("subA/scan.nii.gz", b"AAAA")
+        zf.writestr("subB/scan.nii.gz", b"BBBB")
+    buf.seek(0)
+    resp = data_client.post(
+        f"/projects/{pid}/files/upload/nifti/zip",
+        files=[("file", ("upload.zip", buf, "application/zip"))],
+    )
+    assert resp.status_code == 202
+    staging = resp.json()
+    assert len(staging["proposals"]) == 1
+    assert staging["skipped_duplicates"] == ["subB/scan.nii.gz"]
+
+    staging_dir = tmp_path / "LOCAL_USER" / pid / "_upload" / "nifti" / staging["staging_id"]
+    assert (staging_dir / "scan.nii.gz").read_bytes() == b"AAAA"
+
+
+def test_nifti_commit_skips_existing_target(data_client, tmp_path):
+    pid = _create_project(data_client)
+
+    def upload_and_commit(content: bytes):
+        resp = data_client.post(
+            f"/projects/{pid}/files/upload/nifti",
+            files=[("files", ("sub001_T1.nii.gz", io.BytesIO(content), "application/gzip"))],
+        )
+        assert resp.status_code == 202
+        staging_id = resp.json()["staging_id"]
+        return data_client.post(
+            f"/projects/{pid}/files/stage/{staging_id}/commit",
+            json={"mappings": [{"filename": "sub001_T1.nii.gz", "mrid": "sub001", "modality": "t1"}]},
+        )
+
+    resp1 = upload_and_commit(b"\x00" * 348)
+    assert resp1.status_code == 200
+    body1 = resp1.json()
+    assert len(body1["committed"]) == 1
+    assert body1["skipped"] == []
+    target = tmp_path / "LOCAL_USER" / pid / "t1" / "sub001.nii.gz"
+    assert target.read_bytes() == b"\x00" * 348
+
+    # Re-upload the same subject/modality with different bytes — should be
+    # skipped, not overwritten.
+    resp2 = upload_and_commit(b"\xff" * 348)
+    assert resp2.status_code == 200
+    body2 = resp2.json()
+    assert body2["committed"] == []
+    assert len(body2["skipped"]) == 1
+    assert body2["skipped"][0]["mrid"] == "sub001"
+    assert body2["skipped"][0]["modality"] == "t1"
+    assert target.read_bytes() == b"\x00" * 348  # unchanged
+
+    # The duplicate staged file should have been cleaned up.
+    staging_root = tmp_path / "LOCAL_USER" / pid / "_upload" / "nifti"
+    assert not any(staging_root.iterdir()) if staging_root.exists() else True
+
+
 def test_nifti_stage_discard(data_client, tmp_path):
     pid = _create_project(data_client)
     resp = data_client.post(

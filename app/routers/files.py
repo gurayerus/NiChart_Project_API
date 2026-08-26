@@ -151,9 +151,12 @@ async def delete_file(
     "/files/upload/nifti",
     summary="Upload NIfTI file(s) to staging",
     description=(
-        "Accepts one or more ``.nii`` / ``.nii.gz`` files. Files land in the project "
-        "staging area and the server returns its best-effort MRID and modality inference. "
-        "Follow up with the commit endpoint to move them into the project."
+        "Accepts one or more ``.nii`` / ``.nii.gz`` files (including a folder upload, where "
+        "filenames carry relative directory paths). Files land in the project staging area "
+        "and the server returns its best-effort MRID and modality inference. If two entries "
+        "flatten to the same filename, the first one wins and the rest are reported in "
+        "``skipped_duplicates``. Follow up with the commit endpoint to move them into the "
+        "project."
     ),
     response_model=NiftiStagingResult,
     status_code=202,
@@ -182,7 +185,10 @@ async def upload_nifti(
         "Files land in the project staging area and the server returns its best-effort "
         "MRID and modality inference. Directory components in the archive path contribute "
         "to modality detection (e.g. ``fl/subject001.nii.gz`` infers modality ``fl``). "
-        "Follow up with the commit endpoint to move them into the project."
+        "Nested directories are flattened into a single staging folder; if two entries "
+        "flatten to the same filename, the first one wins and the rest are reported in "
+        "``skipped_duplicates``. Follow up with the commit endpoint to move them into the "
+        "project."
     ),
     response_model=NiftiStagingResult,
     status_code=202,
@@ -206,7 +212,10 @@ async def upload_nifti_zip(
     summary="Commit staged NIfTI files",
     description=(
         "Confirms MRID and modality mappings for staged files and moves them into "
-        "their final locations. Every staged file must appear in ``mappings``."
+        "their final locations. Every staged file must appear in ``mappings``. If a "
+        "subject already has a file at the target modality/MRID slot, the new upload "
+        "is left in place there and the mapping is reported in ``skipped`` instead of "
+        "``committed`` — existing scans are never overwritten by a re-upload."
     ),
     response_model=NiftiCommitResult,
     responses=_AUTH_ERRORS,

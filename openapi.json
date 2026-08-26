@@ -4470,6 +4470,15 @@
             },
             "type": "array",
             "title": "Committed"
+          },
+          "skipped": {
+            "items": {
+              "$ref": "#/components/schemas/CommittedFile"
+            },
+            "type": "array",
+            "title": "Skipped",
+            "description": "Entries whose target file already existed and were left untouched instead of being overwritten.",
+            "default": []
           }
         },
         "type": "object",
@@ -4527,6 +4536,15 @@
             "type": "array",
             "title": "Proposals",
             "description": "Server's best-effort mapping of filenames to MRID and modality."
+          },
+          "skipped_duplicates": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Skipped Duplicates",
+            "description": "Original relative paths that were skipped because they flattened to the same filename as an earlier entry in this upload (first occurrence wins).",
+            "default": []
           }
         },
         "type": "object",

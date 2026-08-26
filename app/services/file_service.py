@@ -369,22 +369,18 @@ def stage_nifti_files(project_path: Path, filenames: list[str], file_data: list[
     staging_dir.mkdir(parents=True, exist_ok=True)
 
     proposals = []
+    skipped_duplicates = []
     for filename, data in zip(filenames, file_data):
         safe_name = Path(filename).name
         if not (safe_name.endswith(".nii") or safe_name.endswith(".nii.gz")):
             shutil.rmtree(staging_dir)
             raise HTTPException(400, f"'{filename}' is not a .nii or .nii.gz file")
-        # Deduplicate: two uploads with the same basename get _1, _2 ... suffixes.
-        if safe_name.endswith(".nii.gz"):
-            stem, ext = safe_name[:-7], ".nii.gz"
-        else:
-            stem, ext = safe_name[:-4], ".nii"
+        # Flattening (e.g. a folder upload with the same basename in two
+        # subfolders) keeps the first occurrence and skips later duplicates.
         dest = staging_dir / safe_name
-        counter = 1
-        while dest.exists():
-            safe_name = f"{stem}_{counter}{ext}"
-            dest = staging_dir / safe_name
-            counter += 1
+        if dest.exists():
+            skipped_duplicates.append(filename)
+            continue
         assert_safe_path(staging_dir, dest)
         dest.write_bytes(data)
         # Infer from the original upload path so that directory components
@@ -396,7 +392,7 @@ def stage_nifti_files(project_path: Path, filenames: list[str], file_data: list[
             inferred_modality=modality,
         ))
 
-    return NiftiStagingResult(staging_id=staging_id, proposals=proposals)
+    return NiftiStagingResult(staging_id=staging_id, proposals=proposals, skipped_duplicates=skipped_duplicates)
 
 
 def stage_nifti_zip(project_path: Path, contents: bytes, filename: str) -> NiftiStagingResult:
@@ -417,27 +413,22 @@ def stage_nifti_zip(project_path: Path, contents: bytes, filename: str) -> Nifti
             safe_unzip(archive, extract_dir)
 
             proposals = []
+            skipped_duplicates = []
             for nifti in sorted(extract_dir.rglob("*")):
                 if not (nifti.name.endswith(".nii") or nifti.name.endswith(".nii.gz")):
                     continue
                 safe_name = nifti.name
                 dest = staging_dir / safe_name
-                # Deduplicate colliding basenames across subdirectories.
+                rel = nifti.relative_to(extract_dir)
+                # Flattening nested folders: the first occurrence of a basename
+                # wins, later ones with the same flattened name are skipped.
                 if dest.exists():
-                    if safe_name.endswith(".nii.gz"):
-                        stem, ext = safe_name[:-7], ".nii.gz"
-                    else:
-                        stem, ext = safe_name[:-4], ".nii"
-                    counter = 1
-                    while dest.exists():
-                        safe_name = f"{stem}_{counter}{ext}"
-                        dest = staging_dir / safe_name
-                        counter += 1
+                    skipped_duplicates.append(str(rel))
+                    continue
                 assert_safe_path(staging_dir, dest)
                 shutil.copy2(nifti, dest)
                 # Pass the relative archive path so directory components contribute
                 # to modality inference (e.g. "fl/subject001.nii.gz").
-                rel = nifti.relative_to(extract_dir)
                 mrid, modality = infer_nifti_metadata(str(rel))
                 proposals.append(NiftiUploadProposal(
                     filename=safe_name,
@@ -448,7 +439,7 @@ def stage_nifti_zip(project_path: Path, contents: bytes, filename: str) -> Nifti
         shutil.rmtree(staging_dir, ignore_errors=True)
         raise
 
-    return NiftiStagingResult(staging_id=staging_id, proposals=proposals)
+    return NiftiStagingResult(staging_id=staging_id, proposals=proposals, skipped_duplicates=skipped_duplicates)
 
 
 def commit_nifti_staging(
@@ -465,14 +456,25 @@ def commit_nifti_staging(
         raise HTTPException(404, f"Staging area '{staging_id}' not found")
 
     committed = []
+    skipped = []
     for mapping in mappings:
         src = staging_dir / mapping.filename
         assert_safe_path(staging_dir, src)
         if not src.exists():
             raise HTTPException(404, f"Staged file '{mapping.filename}' not found")
         target_dir = project_path / mapping.modality
-        target_dir.mkdir(parents=True, exist_ok=True)
         target = target_dir / f"{mapping.mrid}.nii.gz"
+        # Re-uploading a subject that already has a scan for this modality is a
+        # no-op: keep the existing file and drop the duplicate staged upload.
+        if target.exists():
+            src.unlink()
+            skipped.append(CommittedFile(
+                mrid=mapping.mrid,
+                modality=mapping.modality,
+                path=str(target.relative_to(project_path)),
+            ))
+            continue
+        target_dir.mkdir(parents=True, exist_ok=True)
         shutil.move(str(src), target)
         committed.append(CommittedFile(
             mrid=mapping.mrid,
@@ -484,7 +486,7 @@ def commit_nifti_staging(
     if staging_dir.exists() and not any(staging_dir.iterdir()):
         staging_dir.rmdir()
 
-    return NiftiCommitResult(committed=committed)
+    return NiftiCommitResult(committed=committed, skipped=skipped)
 
 
 def discard_nifti_staging(project_path: Path, staging_id: str) -> None:
