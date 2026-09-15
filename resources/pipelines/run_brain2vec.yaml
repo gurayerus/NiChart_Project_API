@@ -1,4 +1,4 @@
-pipeline_name: Brain2Vec Embedding Extraction
+pipeline_name: Brain2Vec
 root_pipeline: brain2vec
 harmonized: false
 modalities: [T1]

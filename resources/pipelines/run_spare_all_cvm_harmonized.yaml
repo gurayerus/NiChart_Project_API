@@ -1,4 +1,4 @@
-pipeline_name: SPARE Scores - All-Inclusive (T1 + FLAIR, Harmonized)
+pipeline_name: SPARE Scores (T1 + FLAIR, Harmonized)
 root_pipeline: spare
 harmonized: true
 modalities: [T1, FLAIR]

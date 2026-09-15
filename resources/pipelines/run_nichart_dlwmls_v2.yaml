@@ -1,4 +1,4 @@
-pipeline_name: DLWMLS Deep Learning White Matter Lesion Segmentation
+pipeline_name: DLWMLS
 root_pipeline: dlwmls
 harmonized: false
 modalities: [T1, FLAIR]

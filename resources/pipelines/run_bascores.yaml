@@ -1,4 +1,4 @@
-pipeline_name: Image-to-Biomarker Brain Aging Scores
+pipeline_name: DL-BA
 root_pipeline: bascores
 harmonized: false
 modalities: [T1]

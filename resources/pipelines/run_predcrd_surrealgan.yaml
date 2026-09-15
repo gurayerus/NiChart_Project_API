@@ -1,4 +1,4 @@
-pipeline_name: SurrealGAN R-Score Prediction
+pipeline_name: SurrealGAN
 root_pipeline: surrealgan
 harmonized: false
 modalities: [T1]

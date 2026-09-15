@@ -1,6 +1,6 @@
 # NiChart pipeline definition for AmyloidPETNet inference.
 
-pipeline_name: AmyloidPETNet Pipeline
+pipeline_name: AmyloidPETNet
 root_pipeline: amyloidpetnet
 harmonized: false
 modalities: [PET]

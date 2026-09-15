@@ -1,4 +1,4 @@
-pipeline_name: DLMUSE Brain Segmentation (Harmonized)
+pipeline_name: DLMUSE (Harmonized)
 root_pipeline: dlmuse
 harmonized: true
 modalities: [T1]

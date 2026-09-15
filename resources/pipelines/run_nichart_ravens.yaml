@@ -1,4 +1,4 @@
-pipeline_name: RAVENS Abnormality Mapping
+pipeline_name: RAVENS Maps
 root_pipeline: ravens
 harmonized: false
 modalities: [T1]

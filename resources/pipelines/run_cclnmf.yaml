@@ -1,4 +1,4 @@
-pipeline_name: CCL-NMF Component Prediction
+pipeline_name: CCL-NMF
 root_pipeline: cclnmf
 harmonized: false
 modalities: [T1]

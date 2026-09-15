@@ -1,4 +1,4 @@
-pipeline_name: Glioblastoma Recurrence Map Generation
+pipeline_name: Glioblastoma Recurrence Map
 root_pipeline: recurrence_map_gen
 harmonized: false
 modalities: [T1, T1CE, T2, FLAIR, ADC]

@@ -1,4 +1,4 @@
-pipeline_name: SynthSeg Whole-Brain Segmentation
+pipeline_name: SynthSeg
 root_pipeline: synthseg
 harmonized: false
 modalities: [T1]
