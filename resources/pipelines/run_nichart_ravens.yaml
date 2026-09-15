@@ -1,4 +1,7 @@
 pipeline_name: RAVENS Abnormality Mapping
+root_pipeline: ravens
+harmonized: false
+modalities: [T1]
 description: |
   Generates patient-specific regional brain volume abnormality maps using DLMUSE and RAVENS.
 

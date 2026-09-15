@@ -37,8 +37,8 @@ _TOKEN_RE = re.compile(r"\{([a-zA-Z0-9_]+)\}")
 # Valid pipeline path patterns: ${STUDY}/... or a plain relative path
 _STEP_PATH_RE = re.compile(r"^\$\{[A-Z_]+\}/.+|^[a-zA-Z0-9_./-]+$")
 
-SKIP_TOOLS = {"dummy_sleep", "dcm2niix"}
-SKIP_PIPELINES = {"dummy_pipeline"}
+SKIP_TOOLS = {"test_sleep", "dcm2niix"}
+SKIP_PIPELINES = {"test_pipeline"}
 
 
 def _tool_yamls():

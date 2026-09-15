@@ -1,4 +1,7 @@
 pipeline_name: SynthSeg Whole-Brain Segmentation
+root_pipeline: synthseg
+harmonized: false
+modalities: [T1]
 description: |
   Whole-brain MRI segmentation using SynthSeg. Produces segmentation label maps
   and a CSV of regional volumes (mm³). SynthSeg accepts any single MRI modality;

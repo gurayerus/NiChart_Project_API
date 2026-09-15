@@ -146,6 +146,31 @@ class PipelineSummary(BaseModel):
             "Multiple pipelines may share the same docs_id (e.g. harmonized variants)."
         ),
     )
+    root_pipeline: str | None = Field(
+        default=None,
+        description=(
+            "Grouping key for this pipeline, used to cluster related variants "
+            "(e.g. base/harmonized/CVM flavours) under a single entry in the UI. "
+            "Pipelines sharing the same root_pipeline belong to the same group; "
+            "null if the pipeline YAML does not declare one."
+        ),
+    )
+    harmonized: bool = Field(
+        default=False,
+        description=(
+            "True if this pipeline applies harmonization to its inputs. "
+            "Explicit counterpart to the 'harmonized' category tag, for callers "
+            "that want to filter/group variants without scanning categories."
+        ),
+    )
+    modalities: list[str] = Field(
+        default_factory=list,
+        description=(
+            "Imaging/data modalities this pipeline requires (e.g. ['T1'], ['T1', 'FLAIR'], "
+            "['PET'], ['idat']), derived from its 'needs_*' prerequisites. "
+            "Empty for pipelines with no modality requirement (e.g. the test pipeline)."
+        ),
+    )
 
 
 class ColumnSpec(BaseModel):

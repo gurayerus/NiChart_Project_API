@@ -1,4 +1,7 @@
 pipeline_name: DLMUSE Brain Segmentation
+root_pipeline: dlmuse
+harmonized: false
+modalities: [T1]
 description: |
   Segmentation pipeline starting from T1-weighted MRI brain scans.
 

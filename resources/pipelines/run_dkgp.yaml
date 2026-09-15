@@ -1,4 +1,7 @@
 pipeline_name: DKGP
+root_pipeline: dkgp
+harmonized: false
+modalities: [T1]
 description: |
   DKGP inference using DLMUSE ROIs, demographics, and SPARE scores.
 

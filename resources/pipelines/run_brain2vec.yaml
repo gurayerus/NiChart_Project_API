@@ -1,4 +1,7 @@
 pipeline_name: Brain2Vec Embedding Extraction
+root_pipeline: brain2vec
+harmonized: false
+modalities: [T1]
 description: |
   Extracts latent brain embeddings from T1-weighted MRI scans using the Brain2Vec
   masked autoencoder (ViT-Base). Each subject is encoded into a 768-dimensional

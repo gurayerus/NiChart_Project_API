@@ -418,7 +418,7 @@ def test_idat_upload_wrong_extension(data_client):
 def test_readiness_no_requirements(data_client):
     """Pipeline with empty requires → always satisfied."""
     pid = _create_project(data_client)
-    resp = data_client.get(f"/projects/{pid}/readiness/dummy_pipeline")
+    resp = data_client.get(f"/projects/{pid}/readiness/test_pipeline")
     assert resp.status_code == 200
     body = resp.json()
     assert body["satisfied"] is True
@@ -517,7 +517,7 @@ def test_readiness_via_api(data_client, tmp_path):
         f"/projects/{pid}/files/upload/csv",
         files={"file": ("participants.csv", io.BytesIO(csv_content), "text/csv")},
     )
-    # dummy_pipeline has no requirements — should be satisfied regardless
-    resp = data_client.get(f"/projects/{pid}/readiness/dummy_pipeline")
+    # test_pipeline has no requirements — should be satisfied regardless
+    resp = data_client.get(f"/projects/{pid}/readiness/test_pipeline")
     assert resp.status_code == 200
     assert resp.json()["satisfied"] is True

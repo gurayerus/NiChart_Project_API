@@ -8,19 +8,19 @@ Typical usage
 
     nichart projects create myproject
     nichart pipelines list
-    nichart pipelines show dummy_pipeline
+    nichart pipelines show test_pipeline
     nichart tools list
 
     nichart files upload-nifti myproject scan_T1.nii.gz
     nichart files upload-csv   myproject participants.csv
     nichart participants show  myproject
 
-    nichart readiness myproject dummy_pipeline
-    nichart jobs submit myproject dummy_pipeline --param duration_seconds=5
+    nichart readiness myproject test_pipeline
+    nichart jobs submit myproject test_pipeline --param duration_seconds=5
     nichart jobs                          # live dashboard of all your jobs
     nichart jobs <run_id>                 # live detail view for one run
     nichart jobs logs <run_id>
-    nichart results show myproject dummy_pipeline
+    nichart results show myproject test_pipeline
 
     nichart retention show    myproject   # when does this project expire? (cloud)
     nichart retention refresh myproject

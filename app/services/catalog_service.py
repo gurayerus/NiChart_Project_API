@@ -255,6 +255,9 @@ def get_pipeline(
         feature_groups=feature_groups,
         column_schemas=_parse_column_schemas(raw_requires),
         docs_id=data.get("docs_id"),
+        root_pipeline=data.get("root_pipeline"),
+        harmonized=bool(data.get("harmonized", False)),
+        modalities=data.get("modalities") or [],
     )
 
 
@@ -431,6 +434,9 @@ def list_pipelines(pipelines_path: Path) -> list[PipelineSummary]:
                 harmonized_variant=data.get("harmonized_variant"),
                 base_variant=data.get("base_variant"),
                 docs_id=data.get("docs_id"),
+                root_pipeline=data.get("root_pipeline"),
+                harmonized=bool(data.get("harmonized", False)),
+                modalities=data.get("modalities") or [],
             ))
         except Exception:
             continue
