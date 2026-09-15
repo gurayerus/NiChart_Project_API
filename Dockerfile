@@ -8,8 +8,11 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # ── dev target: includes dev deps, entire project mounted as volume ──────────
 FROM base AS dev
 COPY pyproject.toml .
-# app/ must exist before pip install so hatchling registers it in the editable .pth
+# app/ and resources/ must exist before pip install: hatchling registers app/
+# in the editable .pth, and its force-include for resources/ (see pyproject.toml)
+# requires the source directory to exist even for an editable install.
 COPY app/ app/
+COPY resources/ resources/
 RUN pip install --no-cache-dir -e ".[dev]"
 # Source is bind-mounted at runtime; copy here only so the image is self-contained
 COPY . .
@@ -18,5 +21,5 @@ COPY . .
 FROM base AS prod
 COPY pyproject.toml .
 COPY app/ app/
-RUN pip install --no-cache-dir -e "."
 COPY resources/ resources/
+RUN pip install --no-cache-dir -e "."
