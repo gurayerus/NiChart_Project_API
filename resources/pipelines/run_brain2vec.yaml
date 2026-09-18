@@ -9,6 +9,8 @@ description: |
   suitable for downstream models for brain-age prediction, disease classification,
   or other phenotypic inference tasks.
 
+docs_id: brain2vec
+
 categories:
   - image-processing
   - feature-extraction

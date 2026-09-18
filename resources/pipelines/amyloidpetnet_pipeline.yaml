@@ -9,6 +9,8 @@ description: |
   images with AmyloidPETNet and produces a tabular CSV of amyloid-positivity
   scores (y_score) per subject.
 
+docs_id: amyloidpetnet
+
 categories:
   - amyloid
   - pet

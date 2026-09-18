@@ -5,6 +5,8 @@ modalities: [T1]
 description: |
   Runs GenFAR inference models from T1 scans aligned to MNI ICBM152 space.
 
+docs_id: genfar
+
 categories:
   - image-to-biomarker
   - regression

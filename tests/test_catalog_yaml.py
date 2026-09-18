@@ -202,3 +202,16 @@ def test_pipeline_steps_reference_known_tools(yaml_path):
             f"Step '{step.get('id')}' references tool '{tool_id}' "
             f"but {tool_file.name} does not exist in resources/tools/"
         )
+
+
+@pytest.mark.parametrize(
+    "yaml_path",
+    [PIPELINES_DIR / "run_nichart_dlwmls_v2.yaml", PIPELINES_DIR / "run_nichart_dlwmls_v2_harmonized.yaml"],
+    ids=lambda p: p.stem,
+)
+def test_dlwmls_pipelines_declare_roi_label_map(yaml_path):
+    """DLWMLS's ROI-indexed lesion volumes must be renamable like DLMUSE's."""
+    data = _load(yaml_path)
+    batch_features = (data.get("results") or {}).get("batch_features") or {}
+    assert batch_features.get("label_map") == "atlases/muse/muse_mapping_derived.csv"
+    assert batch_features.get("column_template") == "DL_WMLS_Volume_{id}"

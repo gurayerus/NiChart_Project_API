@@ -59,3 +59,27 @@ def test_catalog_requires_no_auth(local_client):
     for url in ["/catalog/pipelines", "/catalog/tools"]:
         resp = local_client.get(url, headers={})
         assert resp.status_code == 200
+
+
+def test_get_var_group_catalog(local_client):
+    resp = local_client.get("/catalog/var-groups")
+    assert resp.status_code == 200
+    data = resp.json()
+
+    dlmuse_group = data["groups"]["group_dlmuse-vol"]
+    assert dlmuse_group["label"] == "DLMUSE Volumes"
+    assert dlmuse_group["prefix"] == "DL_MUSE_Volume_"
+    assert dlmuse_group["values"] is None
+
+    spare_group = data["groups"]["group_spare-scores"]
+    assert spare_group["prefix"] is None
+    assert "SPARE_AD" in spare_group["values"]
+
+    roi_list = data["roi_lists"]["list_muse-single"]
+    assert roi_list["atlas"] == "muse"
+    assert 47 in roi_list["values"]
+
+
+def test_var_group_catalog_requires_no_auth(local_client):
+    resp = local_client.get("/catalog/var-groups", headers={})
+    assert resp.status_code == 200

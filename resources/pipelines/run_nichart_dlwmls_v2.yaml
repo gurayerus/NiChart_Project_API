@@ -55,3 +55,11 @@ steps:
       csv_2: ${STUDY}/nichart_dlwmls_out/DLWMLS_DLMUSE_Segmented_Volumes.csv
     outputs:
       out_csv: ${STUDY}/merged_dlmuse_dlwmls/csv_out.csv
+
+results:
+  batch_features:
+    file: "nichart_dlwmls_out/DLWMLS_DLMUSE_Segmented_Volumes.csv"
+    mrid_column: "MRID"
+    label_map: "atlases/muse/muse_mapping_derived.csv"
+    column_template: "DL_WMLS_Volume_{id}"
+    default_unit: "mm³"

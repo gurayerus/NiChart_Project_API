@@ -5,6 +5,8 @@ modalities: [idat]
 description: |
   Takes IDAT epigenetic data arrays and produces tumor composition measures (methylation signatures).
 
+docs_id: ithresolve_gbm
+
 categories:
   - glioblastoma
   - epigenomics

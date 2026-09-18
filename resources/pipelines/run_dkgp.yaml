@@ -5,6 +5,8 @@ modalities: [T1]
 description: |
   DKGP inference using DLMUSE ROIs, demographics, and SPARE scores.
 
+docs_id: dkgp
+
 categories:
   - image-to-biomarker
   - regression

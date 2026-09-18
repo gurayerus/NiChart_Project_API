@@ -3,7 +3,8 @@
     "allow": [
       "Bash(find /home/agetka/vs-code/projects/NiChart_Project -maxdepth 4 -type f -name \"*.py\" | sort | head -60)",
       "Read(//home/agetka/vs-code/projects/NiChart_Project/**)",
-      "Bash(docker compose *)"
+      "Bash(docker compose *)",
+      "WebSearch"
     ],
     "deny": [
       "Read(.env)",

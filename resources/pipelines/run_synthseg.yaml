@@ -7,6 +7,8 @@ description: |
   and a CSV of regional volumes (mm³). SynthSeg accepts any single MRI modality;
   this pipeline runs on T1-weighted scans.
 
+docs_id: synthseg
+
 categories:
   - image-processing
   - segmentation
